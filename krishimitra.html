@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>KrishiMitra AI – Smart Farming Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-50: #f0fdf4; --green-100: #dcfce7; --green-200: #bbf7d0;
+    --green-400: #4ade80; --green-500: #22c55e; --green-600: #16a34a;
+    --green-700: #15803d; --green-800: #166534; --green-900: #14532d;
+    --amber-50: #fffbeb; --amber-100: #fef3c7; --amber-400: #fbbf24;
+    --amber-500: #f59e0b; --amber-600: #d97706;
+    --sky-50: #f0f9ff; --sky-100: #e0f2fe; --sky-400: #38bdf8; --sky-500: #0ea5e9; --sky-600: #0284c7;
+    --red-50: #fef2f2; --red-400: #f87171; --red-500: #ef4444; --red-600: #dc2626;
+    --earth: #92400e; --cream: #fefce8;
+    --bg: #f8faf5;
+    --card: #ffffff;
+    --text: #1a2e1a;
+    --text-muted: #4a6741;
+    --border: #d1e8c8;
+    --shadow: 0 2px 12px rgba(22,163,74,0.10);
+    --shadow-lg: 0 8px 32px rgba(22,163,74,0.15);
+    --radius: 20px;
+    --radius-sm: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { font-size: 16px; }
+  body {
+    font-family: 'Noto Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    padding-bottom: 80px;
+  }
+
+  /* Header */
+  .app-header {
+    background: linear-gradient(135deg, #14532d 0%, #166534 50%, #15803d 100%);
+    padding: 20px 20px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .app-header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: relative; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 42px; height: 42px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .logo-text { color: white; }
+  .logo-text h1 { font-family: 'Baloo 2', cursive; font-size: 20px; font-weight: 800; line-height: 1; }
+  .logo-text p { font-size: 11px; opacity: 0.8; }
+  .lang-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-family: inherit; cursor: pointer; }
+
+  /* Language selector */
+  .lang-panel { background: var(--card); border-radius: var(--radius); padding: 16px; margin: 16px 20px 0; border: 1.5px solid var(--border); display: none; position: relative; z-index: 10; }
+  .lang-panel.open { display: block; }
+  .lang-panel h3 { font-size: 14px; color: var(--text-muted); margin-bottom: 10px; }
+  .lang-btns { display: flex; gap: 8px; }
+  .lang-opt { flex: 1; padding: 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; font-size: 14px; font-family: inherit; text-align: center; font-weight: 600; transition: all 0.2s; }
+  .lang-opt.active { background: var(--green-600); color: white; border-color: var(--green-600); }
+
+  /* Bottom nav */
+  .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: white; border-top: 1px solid var(--border); display: flex; z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); }
+  .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px; border: none; background: none; cursor: pointer; font-family: inherit; color: var(--text-muted); font-size: 10px; transition: color 0.2s; }
+  .nav-btn.active { color: var(--green-600); }
+  .nav-btn .nav-icon { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 18px; transition: background 0.2s; }
+  .nav-btn.active .nav-icon { background: var(--green-100); }
+
+  /* Pages */
+  .page { display: none; padding: 16px 16px 0; }
+  .page.active { display: block; }
+
+  /* Cards */
+  .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; border: 1.5px solid var(--border); box-shadow: var(--shadow); }
+  .card-title { display: flex; align-items: center; gap: 8px; font-family: 'Baloo 2', cursive; font-size: 17px; font-weight: 700; color: var(--green-800); margin-bottom: 14px; }
+  .card-title span { font-size: 20px; }
+
+  /* Scan section */
+  .upload-zone {
+    border: 2.5px dashed var(--green-400);
+    border-radius: var(--radius);
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    background: var(--green-50);
+    position: relative;
+  }
+  .upload-zone:hover, .upload-zone.drag { background: var(--green-100); border-color: var(--green-600); }
+  .upload-zone .upload-icon { font-size: 52px; margin-bottom: 10px; }
+  .upload-zone .upload-title { font-family: 'Baloo 2', cursive; font-size: 18px; font-weight: 700; color: var(--green-700); }
+  .upload-zone .upload-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+  .preview-img { width: 100%; border-radius: var(--radius-sm); max-height: 260px; object-fit: cover; margin-bottom: 14px; }
+
+  .big-btn { width: 100%; padding: 16px; border-radius: var(--radius); border: none; font-family: 'Baloo 2', cursive; font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; }
+  .btn-green { background: var(--green-600); color: white; }
+  .btn-green:hover { background: var(--green-700); }
+  .btn-green:disabled { background: #9ca3af; cursor: not-allowed; }
+  .btn-outline { background: white; color: var(--green-600); border: 2px solid var(--green-600); }
+  .btn-outline:hover { background: var(--green-50); }
+  .btn-amber { background: var(--amber-500); color: white; }
+  .btn-sky { background: var(--sky-500); color: white; }
+
+  /* Result card */
+  .result-section { display: none; }
+  .result-section.show { display: block; }
+  .result-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+  .badge-red { background: var(--red-50); color: var(--red-600); }
+  .badge-green { background: var(--green-100); color: var(--green-700); }
+  .result-name { font-family: 'Baloo 2', cursive; font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+  .result-disease { font-size: 15px; color: var(--red-600); font-weight: 600; margin-bottom: 14px; }
+
+  .treatment-steps { list-style: none; }
+  .treatment-steps li { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; line-height: 1.5; }
+  .treatment-steps li:last-child { border-bottom: none; }
+  .step-num { width: 26px; height: 26px; min-width: 26px; background: var(--green-600); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+
+  .advice-row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .advice-row:last-child { border-bottom: none; }
+  .advice-icon { font-size: 18px; min-width: 24px; }
+
+  /* Weather card */
+  .weather-hero { background: linear-gradient(135deg, #0284c7, #0ea5e9); border-radius: var(--radius); padding: 20px; color: white; margin-bottom: 14px; }
+  .weather-main { display: flex; align-items: center; justify-content: space-between; }
+  .weather-temp { font-family: 'Baloo 2', cursive; font-size: 52px; font-weight: 800; line-height: 1; }
+  .weather-icon-big { font-size: 52px; }
+  .weather-location { font-size: 14px; opacity: 0.9; margin-bottom: 6px; }
+  .weather-desc { font-size: 16px; font-weight: 600; text-transform: capitalize; }
+  .weather-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .weather-stat { background: rgba(255,255,255,0.2); border-radius: 12px; padding: 12px; text-align: center; }
+  .weather-stat .ws-val { font-family: 'Baloo 2', cursive; font-size: 20px; font-weight: 700; }
+  .weather-stat .ws-label { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+
+  /* Smart advice */
+  .advice-card-do { background: var(--green-50); border: 1.5px solid var(--green-200); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start; }
+  .advice-card-avoid { background: var(--red-50); border: 1.5px solid #fca5a5; border-radius: var(--radius-sm); padding: 14px; margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start; }
+  .advice-emoji { font-size: 24px; min-width: 32px; }
+  .advice-text strong { font-size: 14px; font-weight: 700; display: block; margin-bottom: 3px; }
+  .advice-text span { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+  /* Loading */
+  .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
+  .loading-overlay.show { display: flex; }
+  .spinner { width: 52px; height: 52px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { color: white; font-family: 'Baloo 2', cursive; font-size: 18px; font-weight: 700; }
+
+  /* Toast */
+  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px); background: #1a2e1a; color: white; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; z-index: 300; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* History */
+  .history-item { background: var(--card); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 10px; border: 1.5px solid var(--border); display: flex; gap: 12px; align-items: center; }
+  .history-thumb { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; background: var(--green-100); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+  .history-info h4 { font-size: 14px; font-weight: 700; color: var(--text); }
+  .history-info p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .history-info .hist-badge { font-size: 11px; background: var(--green-100); color: var(--green-700); padding: 2px 8px; border-radius: 10px; display: inline-block; margin-top: 4px; }
+
+  /* Empty states */
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+  .empty-state .es-icon { font-size: 52px; margin-bottom: 12px; }
+  .empty-state h3 { font-family: 'Baloo 2', cursive; font-size: 18px; color: var(--text); margin-bottom: 6px; }
+  .empty-state p { font-size: 14px; line-height: 1.6; }
+
+  /* Voice */
+  .voice-btn { width: 100%; padding: 14px; border-radius: var(--radius); border: 2px solid var(--sky-400); background: var(--sky-50); color: var(--sky-600); font-family: 'Baloo 2', cursive; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; margin-bottom: 12px; }
+  .voice-btn.listening { background: var(--sky-500); color: white; animation: pulse 1s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+
+  /* Page header */
+  .page-header { padding: 16px 20px 8px; }
+  .page-header h2 { font-family: 'Baloo 2', cursive; font-size: 22px; font-weight: 800; color: var(--green-800); }
+  .page-header p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Section label */
+  .section-label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; padding: 0 4px; }
+
+  /* Tips chip row */
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .chip { background: var(--green-100); color: var(--green-700); border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--green-200); white-space: nowrap; }
+  .chip:hover { background: var(--green-200); }
+
+  /* Ask AI */
+  .ask-input-row { display: flex; gap: 8px; }
+  .ask-input { flex: 1; padding: 12px 16px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-family: inherit; font-size: 14px; background: white; color: var(--text); outline: none; }
+  .ask-input:focus { border-color: var(--green-500); }
+  .ask-send { padding: 12px 16px; background: var(--green-600); color: white; border: none; border-radius: var(--radius-sm); font-size: 18px; cursor: pointer; }
+
+  /* Chat bubbles */
+  .chat-area { max-height: 300px; overflow-y: auto; margin-bottom: 12px; }
+  .bubble { padding: 10px 14px; border-radius: 16px; max-width: 90%; font-size: 14px; line-height: 1.6; margin-bottom: 8px; }
+  .bubble-user { background: var(--green-600); color: white; margin-left: auto; border-bottom-right-radius: 4px; }
+  .bubble-ai { background: var(--card); border: 1.5px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
+
+  /* TTS button */
+  .tts-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; border: 1.5px solid var(--border); background: white; color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 6px; font-family: inherit; }
+  .tts-btn:hover { background: var(--green-50); }
+
+  @media (max-width: 360px) {
+    .weather-temp { font-size: 40px; }
+    .weather-icon-big { font-size: 40px; }
+  }</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Analyzing plant...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="app-header">
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-icon">🌱</div>
+      <div class="logo-text">
+        <h1>KrishiMitra AI</h1>
+        <p id="tagline">Smart Farming Assistant</p>
+      </div>
+    </div>
+    <button class="lang-btn" onclick="toggleLang()" id="langBtnLabel">🌐 EN</button>
+  </div>
+</div>
+
+<div class="lang-panel" id="langPanel">
+  <h3 id="chooseLangLabel">Choose Language / भाषा चुनें</h3>
+  <div class="lang-btns">
+    <button class="lang-opt active" data-lang="en" onclick="setLang('en')">English</button>
+    <button class="lang-opt" data-lang="hi" onclick="setLang('hi')">हिंदी</button>
+    <button class="lang-opt" data-lang="mr" onclick="setLang('mr')">मराठी</button>
+  </div>
+</div>
+
+<div class="page active" id="page-scan">
+  <div class="page-header">
+    <h2 id="scanTitle">🔍 Scan Your Plant</h2>
+    <p id="scanSub">Upload a photo to detect disease & get treatment</p>
+  </div>
+
+  <div class="card">
+    <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
+      <span>🎙️</span> <span id="voiceBtnLabel">Ask by Voice</span>
+    </button>
+
+    <div class="upload-zone" id="uploadZone" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+      <div class="upload-icon">📸</div>
+      <div class="upload-title" id="uploadTitle">Tap to Upload / Take Photo</div>
+      <div class="upload-sub" id="uploadSub">Supports JPG, PNG, WEBP</div>
+      <input type="file" accept="image/*" capture="environment" id="fileInput" onchange="onFileSelect(event)">
+    </div>
+
+    <img id="previewImg" class="preview-img" style="display:none" alt="Preview">
+
+    <div id="analyzeSection" style="display:none; margin-top:12px;">
+      <button class="big-btn btn-green" id="analyzeBtn" onclick="analyzeImage()">
+        <span>🧬</span> <span id="analyzeBtnLabel">Analyze Plant</span>
+      </button>
+      <button class="big-btn btn-outline" onclick="resetScan()" style="margin-top:8px; font-size:15px; padding:12px;">
+        <span>🔄</span> <span id="resetBtnLabel">Take New Photo</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="result-section" id="resultSection">
+    <div class="card">
+      <div id="resultBadge" class="result-badge badge-red">🔴 Disease Detected</div>
+      <div class="result-name" id="resultPlant">–</div>
+      <div class="result-disease" id="resultDisease">–</div>
+
+      <div class="section-label" id="treatLabel">Treatment Steps</div>
+      <ul class="treatment-steps" id="treatmentList"></ul>
+
+      <button class="tts-btn" onclick="speakResult()">🔊 <span id="listenLabel">Listen</span></button>
+    </div>
+
+    <div class="card" id="farmerAdviceCard">
+      <div class="card-title"><span>👨‍🌾</span> <span id="farmerAdviceTitle">Farmer Advice</span></div>
+      <div id="farmerAdviceList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-weather">
+  <div class="page-header">
+    <h2 id="weatherTitle">☁️ Live Weather</h2>
+    <p id="weatherSub">Real-time weather for your location</p>
+  </div>
+
+  <div id="weatherContent">
+    <div class="empty-state">
+      <div class="es-icon">📡</div>
+      <h3 id="fetchWeatherTitle">Fetching Weather...</h3>
+      <p id="fetchWeatherSub">Please allow location access</p>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-advice">
+  <div class="page-header">
+    <h2 id="adviceTitle">💡 Smart Farming Advice</h2>
+    <p id="adviceSub">Based on today's weather conditions</p>
+  </div>
+
+  <div id="adviceContent">
+    <div class="empty-state">
+      <div class="es-icon">🌾</div>
+      <h3>Loading Advice...</h3>
+      <p>Weather data needed for smart advice</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:4px;">
+    <div class="card-title"><span>🤖</span> <span id="askAiTitle">Ask Farming Question</span></div>
+    <div class="chip-row" id="quickChips"></div>
+    <div class="chat-area" id="chatArea"></div>
+    <div class="ask-input-row">
+      <input type="text" class="ask-input" id="askInput" placeholder="Type your question..." onkeydown="if(event.key==='Enter')sendQuestion()">
+      <button class="ask-send" onclick="sendQuestion()">➤</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-history">
+  <div class="page-header">
+    <h2 id="historyTitle">📋 Scan History</h2>
+    <p id="historySub">Your previous plant scans</p>
+  </div>
+  <div id="historyList"></div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-page="scan" onclick="switchPage('scan')">
+    <div class="nav-icon">📸</div>
+    <span id="navScan">Scan</span>
+  </button>
+  <button class="nav-btn" data-page="weather" onclick="switchPage('weather')">
+    <div class="nav-icon">🌤️</div>
+    <span id="navWeather">Weather</span>
+  </button>
+  <button class="nav-btn" data-page="advice" onclick="switchPage('advice')">
+    <div class="nav-icon">💡</div>
+    <span id="navAdvice">Advice</span>
+  </button>
+  <button class="nav-btn" data-page="history" onclick="switchPage('history')">
+    <div class="nav-icon">📋</div>
+    <span id="navHistory">History</span>
+  </button>
+</nav>
+
+<script>
+// ===== CONFIG =====
+// Put your API Key inside the quotes below
+const GEMINI_API_KEY = 'AIzaSyBlbzKiG64MyfhNap_9RtF3ncTPyB3sTBI'; 
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+// ===== STATE =====
+let currentLang = 'en';
+let currentImage = null;
+let currentImageBase64 = null;
+let currentImageMime = 'image/jpeg';
+let weatherData = null;
+let scanHistory = JSON.parse(localStorage.getItem('krishiHistory') || '[]');
+let isListening = false;
+let recognition = null;
+
+// ===== TRANSLATIONS =====
+const T = {
+  en: {
+    tagline: 'Smart Farming Assistant',
+    scanTitle: '🔍 Scan Your Plant',
+    scanSub: 'Upload a photo to detect disease & get treatment',
+    uploadTitle: 'Tap to Upload / Take Photo',
+    uploadSub: 'Supports JPG, PNG, WEBP',
+    analyzeBtnLabel: 'Analyze Plant',
+    resetBtnLabel: 'Take New Photo',
+    voiceBtnLabel: 'Ask by Voice',
+    weatherTitle: '☁️ Live Weather',
+    weatherSub: 'Real-time weather for your location',
+    adviceTitle: '💡 Smart Farming Advice',
+    adviceSub: "Based on today's weather conditions",
+    askAiTitle: '🤖 Ask Farming Question',
+    historyTitle: '📋 Scan History',
+    historySub: 'Your previous plant scans',
+    navScan: 'Scan', navWeather: 'Weather', navAdvice: 'Advice', navHistory: 'History',
+    treatLabel: 'Treatment Steps',
+    farmerAdviceTitle: 'Farmer Advice',
+    listenLabel: 'Listen',
+    fetchWeatherTitle: 'Fetching Weather...',
+    fetchWeatherSub: 'Please allow location access',
+    noHistory: 'No scans yet',
+    noHistorySub: 'Scan a plant to see history here',
+    quickQuestions: ['Best fertilizer for wheat?', 'When to sow tomatoes?', 'How to control pests?', 'Irrigation tips today?'],
+  },
+  hi: {
+    tagline: 'स्मार्ट खेती सहायक',
+    scanTitle: '🔍 पौधे की जांच करें',
+    scanSub: 'रोग पहचान और उपचार के लिए फोटो अपलोड करें',
+    uploadTitle: 'फोटो लें या अपलोड करें',
+    uploadSub: 'JPG, PNG, WEBP समर्थित',
+    analyzeBtnLabel: 'विश्लेषण करें',
+    resetBtnLabel: 'नई फोटो लें',
+    voiceBtnLabel: 'आवाज़ से पूछें',
+    weatherTitle: '☁️ मौसम की जानकारी',
+    weatherSub: 'आपके स्थान का लाइव मौसम',
+    adviceTitle: '💡 स्मार्ट खेती सलाह',
+    adviceSub: 'आज के मौसम पर आधारित सलाह',
+    askAiTitle: '🤖 खेती सवाल पूछें',
+    historyTitle: '📋 स्कैन इतिहास',
+    historySub: 'आपके पिछले स्कैन',
+    navScan: 'स्कैन', navWeather: 'मौसम', navAdvice: 'सलाह', navHistory: 'इतिहास',
+    treatLabel: 'उपचार के चरण',
+    farmerAdviceTitle: 'किसान सलाह',
+    listenLabel: 'सुनें',
+    fetchWeatherTitle: 'मौसम लोड हो रहा है...',
+    fetchWeatherSub: 'कृपया स्थान की अनुमति दें',
+    noHistory: 'अभी तक कोई स्कैन नहीं',
+    noHistorySub: 'पौधे को स्कैन करें और यहाँ देखें',
+    quickQuestions: ['गेहूं के लिए सबसे अच्छा खाद?', 'टमाटर कब बोएं?', 'कीड़े कैसे नियंत्रित करें?', 'आज सिंचाई कब करें?'],
+  },
+  mr: {
+    tagline: 'स्मार्ट शेती सहाय्यक',
+    scanTitle: '🔍 वनस्पती तपासा',
+    scanSub: 'रोग शोधण्यासाठी फोटो अपलोड करा',
+    uploadTitle: 'फोटो घ्या किंवा अपलोड करा',
+    uploadSub: 'JPG, PNG, WEBP समर्थित',
+    analyzeBtnLabel: 'विश्लेषण करा',
+    resetBtnLabel: 'नवीन फोटो घ्या',
+    voiceBtnLabel: 'आवाजाने विचारा',
+    weatherTitle: '☁️ थेट हवामान',
+    weatherSub: 'तुमच्या ठिकाणाचे हवामान',
+    adviceTitle: '💡 स्मार्ट शेती सल्ला',
+    adviceSub: 'आजच्या हवामानावर आधारित',
+    askAiTitle: '🤖 शेती प्रश्न विचारा',
+    historyTitle: '📋 स्कॅन इतिहास',
+    historySub: 'तुमचे मागील स्कॅन',
+    navScan: 'स्कॅन', navWeather: 'हवामान', navAdvice: 'सल्ला', navHistory: 'इतिहास',
+    treatLabel: 'उपचाराचे टप्पे',
+    farmerAdviceTitle: 'शेतकरी सल्ला',
+    listenLabel: 'ऐका',
+    fetchWeatherTitle: 'हवामान लोड होत आहे...',
+    fetchWeatherSub: 'कृपया स्थान परवानगी द्या',
+    noHistory: 'अजून स्कॅन नाही',
+    noHistorySub: 'झाड स्कॅन करा',
+    quickQuestions: ['गव्हासाठी सर्वोत्तम खत?', 'टोमॅटो कधी पेरावे?', 'कीड कशी नियंत्रित करावी?', 'आज पाणी केव्हा द्यावे?'],
+  }
+};
+
+function tr(key) { return T[currentLang][key] || T['en'][key] || key; }
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-opt').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+  document.getElementById('langBtnLabel').textContent = '🌐 ' + lang.toUpperCase();
+  applyTranslations();
+  document.getElementById('langPanel').classList.remove('open');
+  renderQuickChips();
+}
+
+function applyTranslations() {
+  const keys = ['tagline','scanTitle','scanSub','uploadTitle','uploadSub','analyzeBtnLabel','resetBtnLabel',
+    'voiceBtnLabel','weatherTitle','weatherSub','adviceTitle','adviceSub','askAiTitle','historyTitle',
+    'historySub','navScan','navWeather','navAdvice','navHistory','treatLabel','farmerAdviceTitle',
+    'listenLabel','fetchWeatherTitle','fetchWeatherSub'];
+  keys.forEach(k => { const el = document.getElementById(k); if(el) el.textContent = tr(k); });
+  const ai = document.getElementById('askInput');
+  if (ai) ai.placeholder = currentLang === 'hi' ? 'अपना सवाल टाइप करें...' : currentLang === 'mr' ? 'तुमचा प्रश्न टाइप करा...' : 'Type your question...';
+}
+
+function toggleLang() {
+  document.getElementById('langPanel').classList.toggle('open');
+}
+
+// ===== NAVIGATION =====
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+  document.getElementById('page-' + page).classList.add('active');
+  if (page === 'weather' && !weatherData) loadWeather();
+  if (page === 'advice') renderSmartAdvice();
+  if (page === 'history') renderHistory();
+}
+
+// ===== FILE UPLOAD =====
+function onFileSelect(e) { const f = e.target.files[0]; if(f) processFile(f); }
+function onDragOver(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('drag'); }
+function onDragLeave() { document.getElementById('uploadZone').classList.remove('drag'); }
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) processFile(f);
+}
+
+function processFile(file) {
+  currentImage = file;
+  currentImageMime = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    currentImageBase64 = e.target.result.split(',')[1];
+    document.getElementById('previewImg').src = e.target.result;
+    document.getElementById('previewImg').style.display = 'block';
+    document.getElementById('analyzeSection').style.display = 'block';
+    document.getElementById('uploadZone').style.display = 'none';
+    document.getElementById('resultSection').classList.remove('show');
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetScan() {
+  currentImage = null; currentImageBase64 = null;
+  document.getElementById('previewImg').style.display = 'none';
+  document.getElementById('analyzeSection').style.display = 'none';
+  document.getElementById('uploadZone').style.display = 'block';
+  document.getElementById('resultSection').classList.remove('show');
+  document.getElementById('fileInput').value = '';
+}
+
+// ===== GEMINI API HELPER =====
+async function callGemini(parts, forceJson = false) {
+  // Base configuration
+  const config = { 
+    temperature: 0.4, 
+    maxOutputTokens: 3000 
+  };
+
+  // Only apply the strict JSON schema if 'forceJson' is true (for the camera)
+  if (forceJson) {
+    config.responseMimeType = "application/json";
+    config.responseSchema = {
+      type: "OBJECT",
+      properties: {
+        plant: { type: "STRING" },
+        disease: { type: "STRING" },
+        severity: { type: "STRING" },
+        isHealthy: { type: "BOOLEAN" },
+        treatment: { type: "ARRAY", items: { type: "STRING" } },
+        prevention: { type: "ARRAY", items: { type: "STRING" } },
+        farmerAdvice: {
+          type: "ARRAY",
+          items: {
+            type: "OBJECT",
+            properties: {
+              type: { type: "STRING" },
+              title: { type: "STRING" },
+              detail: { type: "STRING" }
+            }
+          }
+        }
+      },
+      required: ["plant", "disease", "severity", "isHealthy", "treatment", "prevention", "farmerAdvice"]
+    };
+  }
+
+  const res = await fetch(GEMINI_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts }],
+      generationConfig: config // Use the smart config
+    })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+// ===== AI ANALYSIS =====
+async function analyzeImage() {
+  if (!currentImageBase64) { showToast('⚠️ Please upload a plant image first'); return; }
+  showLoading('Analyzing plant with Gemini AI...');
+
+  const langNote = currentLang === 'hi' ? 'Respond in Hindi.' : currentLang === 'mr' ? 'Respond in Marathi.' : 'Respond in English.';
+  const prompt = `You are an expert plant pathologist and agronomist. Analyze this plant image carefully. ${langNote}. Provide the plant name, disease name (or state if healthy), severity, isHealthy boolean, step-by-step treatment, prevention tips, and a list of farmer advice (do's and avoids). DO NOT use line breaks or unescaped double quotes inside your text descriptions.`;
+
+  try {
+    // Notice the "true" added here! This tells the helper to use JSON mode.
+    const text = await callGemini([
+      { inline_data: { mime_type: currentImageMime, data: currentImageBase64 } },
+      { text: prompt }
+    ], true); 
+    
+    console.log("Raw Gemini Response:", text);
+    
+    const result = JSON.parse(text);
+    hideLoading();
+    displayResult(result);
+    saveToHistory(result);
+  } catch (err) {
+    hideLoading();
+    console.error('Gemini error:', err);
+    if (err.message && err.message.includes('API_KEY')) {
+      showToast('❌ API key error. Check your Gemini key.');
+    } else if (err.message && err.message.toLowerCase().includes('quota')) {
+      showToast('⚠️ API quota exceeded. Try again later.');
+    } else {
+      showToast('❌ Analysis failed: ' + (err.message || 'Unknown error').substring(0, 50));
+    }
+  }
+}
+
+// ===== AI ANALYSIS =====
+async function analyzeImage() {
+  if (!currentImageBase64) { showToast('⚠️ Please upload a plant image first'); return; }
+  showLoading('Analyzing plant with Gemini AI...');
+
+  const langNote = currentLang === 'hi' ? 'Respond in Hindi.' : currentLang === 'mr' ? 'Respond in Marathi.' : 'Respond in English.';
+  const prompt = `You are an expert plant pathologist and agronomist. Analyze this plant image carefully. ${langNote}. Provide the plant name, disease name (or state if healthy), severity, isHealthy boolean, step-by-step treatment, prevention tips, and a list of farmer advice (do's and avoids). DO NOT use line breaks or unescaped double quotes inside your text descriptions.`;
+
+  try {
+    const text = await callGemini([
+      { inline_data: { mime_type: currentImageMime, data: currentImageBase64 } },
+      { text: prompt }
+    ]);
+    
+    console.log("Raw Gemini Response:", text);
+    
+    const result = JSON.parse(text);
+    hideLoading();
+    displayResult(result);
+    saveToHistory(result);
+  } catch (err) {
+    hideLoading();
+    console.error('Gemini error:', err);
+    if (err.message && err.message.includes('API_KEY')) {
+      showToast('❌ API key error. Check your Gemini key.');
+    } else if (err.message && err.message.toLowerCase().includes('quota')) {
+      showToast('⚠️ API quota exceeded. Try again later.');
+    } else {
+      showToast('❌ Analysis failed: ' + (err.message || 'Unknown error').substring(0, 50));
+    }
+  }
+}
+
+function displayResult(r) {
+  const section = document.getElementById('resultSection');
+  section.classList.add('show');
+
+  const badge = document.getElementById('resultBadge');
+  if (r.isHealthy) {
+    badge.className = 'result-badge badge-green';
+    badge.textContent = '✅ Plant is Healthy';
+  } else {
+    badge.className = 'result-badge badge-red';
+    badge.textContent = '🔴 Disease Detected' + (r.severity && r.severity !== 'None' ? ` (${r.severity})` : '');
+  }
+  document.getElementById('resultPlant').textContent = '🌿 ' + (r.plant || 'Unknown Plant');
+  document.getElementById('resultDisease').textContent = r.isHealthy ? 'No disease found ✅' : (r.disease || 'Disease detected');
+
+  const treatList = document.getElementById('treatmentList');
+  treatList.innerHTML = '';
+  (r.treatment || []).forEach((step, i) => {
+    treatList.innerHTML += `<li><div class="step-num">${i+1}</div><div>${step}</div></li>`;
+  });
+
+  const advList = document.getElementById('farmerAdviceList');
+  advList.innerHTML = '';
+  (r.farmerAdvice || []).forEach(a => {
+    const cls = a.type === 'do' ? 'advice-card-do' : 'advice-card-avoid';
+    const em = a.type === 'do' ? '✔️' : '❌';
+    advList.innerHTML += `<div class="${cls}"><div class="advice-emoji">${em}</div><div class="advice-text"><strong>${a.title}</strong><span>${a.detail}</span></div></div>`;
+  });
+
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  window._lastResult = r;
+}
+
+function saveToHistory(r) {
+  const entry = {
+    id: Date.now(),
+    plant: r.plant,
+    disease: r.disease,
+    isHealthy: r.isHealthy,
+    date: new Date().toLocaleDateString(),
+    thumb: currentImageBase64 ? 'data:' + currentImageMime + ';base64,' + currentImageBase64 : null
+  };
+  scanHistory.unshift(entry);
+  if (scanHistory.length > 20) scanHistory.pop();
+  localStorage.setItem('krishiHistory', JSON.stringify(scanHistory));
+}
+
+function speakResult() {
+  if (!window._lastResult) return;
+  const r = window._lastResult;
+  const text = `${r.plant}. ${r.isHealthy ? 'The plant is healthy.' : 'Disease: ' + r.disease + '.'} ${(r.treatment || []).slice(0,2).join('. ')}`;
+  speak(text);
+}
+
+// ===== WEATHER =====
+async function loadWeather() {
+  document.getElementById('weatherContent').innerHTML = `<div class="empty-state"><div class="es-icon">📡</div><h3>${tr('fetchWeatherTitle')}</h3><p>${tr('fetchWeatherSub')}</p></div>`;
+  if (!navigator.geolocation) { fetchWeatherData(21.1458, 79.0882); return; }
+  navigator.geolocation.getCurrentPosition(
+    pos => fetchWeatherData(pos.coords.latitude, pos.coords.longitude),
+    ()  => fetchWeatherData(21.1458, 79.0882)
+  );
+}
+
+async function fetchWeatherData(lat, lon) {
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code&daily=precipitation_sum,temperature_2m_max,temperature_2m_min&forecast_days=3&timezone=auto`;
+    const res = await fetch(url);
+    const d = await res.json();
+    const c = d.current;
+    weatherData = {
+      temp: Math.round(c.temperature_2m),
+      humidity: c.relative_humidity_2m,
+      rain: c.precipitation,
+      wind: Math.round(c.wind_speed_10m),
+      code: c.weather_code,
+      lat, lon,
+      rainForecast: d.daily.precipitation_sum,
+      maxTemp: d.daily.temperature_2m_max,
+      minTemp: d.daily.temperature_2m_min
+    };
+    try {
+      const gr = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+      const gd = await gr.json();
+      weatherData.location = gd.address?.city || gd.address?.town || gd.address?.village || 'Your Location';
+    } catch { weatherData.location = 'Your Location'; }
+    renderWeatherUI();
+    renderSmartAdvice();
+  } catch(e) {
+    document.getElementById('weatherContent').innerHTML = `<div class="empty-state"><div class="es-icon">❌</div><h3>Weather unavailable</h3><p>Check your internet connection</p></div>`;
+  }
+}
+
+function getWeatherEmoji(code) {
+  if (code === 0) return '☀️';
+  if (code <= 3) return '⛅';
+  if (code <= 48) return '🌫️';
+  if (code <= 67) return '🌧️';
+  if (code <= 77) return '❄️';
+  if (code <= 82) return '🌦️';
+  return '⛈️';
+}
+function getWeatherDesc(code) {
+  if (code === 0) return 'Clear Sky';
+  if (code <= 3) return 'Partly Cloudy';
+  if (code <= 48) return 'Foggy';
+  if (code <= 67) return 'Rainy';
+  if (code <= 77) return 'Snowy';
+  if (code <= 82) return 'Rain Showers';
+  return 'Thunderstorm';
+}
+
+function renderWeatherUI() {
+  if (!weatherData) return;
+  const w = weatherData;
+  const em = getWeatherEmoji(w.code);
+  const desc = getWeatherDesc(w.code);
+  const days = ['Today', 'Tomorrow', 'Day 3'];
+  const forecastHtml = (w.rainForecast || []).map((r, i) => `
+    <div style="flex:1;background:rgba(255,255,255,0.2);border-radius:12px;padding:12px;text-align:center;">
+      <div style="font-size:12px;opacity:0.85;margin-bottom:4px;">${days[i]||'Day'+(i+1)}</div>
+      <div style="font-size:17px;">💧${Math.round(r)}mm</div>
+      <div style="font-size:12px;margin-top:4px;">${Math.round(w.maxTemp[i])}°/${Math.round(w.minTemp[i])}°</div>
+    </div>`).join('');
+
+  document.getElementById('weatherContent').innerHTML = `
+    <div class="weather-hero">
+      <div class="weather-location">📍 ${w.location}</div>
+      <div class="weather-main">
+        <div><div class="weather-temp">${w.temp}°C</div><div class="weather-desc">${desc}</div></div>
+        <div class="weather-icon-big">${em}</div>
+      </div>
+      <div class="weather-grid">
+        <div class="weather-stat"><div class="ws-val">💧 ${w.humidity}%</div><div class="ws-label">Humidity</div></div>
+        <div class="weather-stat"><div class="ws-val">🌧️ ${w.rain}mm</div><div class="ws-label">Precipitation</div></div>
+        <div class="weather-stat"><div class="ws-val">💨 ${w.wind}km/h</div><div class="ws-label">Wind Speed</div></div>
+        <div class="weather-stat"><div class="ws-val">${w.temp > 35 ? '🔥 Hot' : w.temp > 25 ? '😊 Warm' : '❄️ Cool'}</div><div class="ws-label">Condition</div></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:0">
+      <div class="card-title"><span>📅</span> 3-Day Rain Forecast</div>
+      <div style="display:flex;gap:8px;">${forecastHtml}</div>
+    </div>`;
+}
+
+// ===== SMART ADVICE ENGINE =====
+function generateAdvice(w) {
+  const advice = [];
+  if (!w) return advice;
+  const todayRain = (w.rainForecast && w.rainForecast[0]) || 0;
+  if (w.rain > 2 || todayRain > 5) {
+    advice.push({ type:'do',   emoji:'🌱', title:'Good time for sowing',       detail:'Rain expected — ideal for sowing seeds and transplanting seedlings.' });
+    advice.push({ type:'avoid',emoji:'🚫', title:'Avoid pesticide spraying',    detail:'Rain will wash away chemicals. Wait for dry weather before spraying.' });
+    advice.push({ type:'avoid',emoji:'🚜', title:'Avoid heavy field operations',detail:'Wet soil compacts easily. Keep heavy machinery out of the field.' });
+  }
+  if (w.temp > 35) {
+    advice.push({ type:'do',   emoji:'💧', title:'Irrigate your crops now',     detail:'High temperature — water crops in early morning or evening to reduce stress.' });
+    advice.push({ type:'avoid',emoji:'☀️', title:'Avoid afternoon fieldwork',   detail:'Extreme heat 12pm–3pm. Rest and protect yourself from sunstroke.' });
+    advice.push({ type:'do',   emoji:'🌿', title:'Apply mulching',              detail:'Cover soil with straw or dry grass to retain moisture and reduce heat.' });
+  }
+  if (w.humidity > 80) {
+    advice.push({ type:'avoid',emoji:'🧪', title:'Skip pesticide spraying',     detail:'High humidity reduces spray effectiveness and promotes fungal spread.' });
+    advice.push({ type:'do',   emoji:'🔍', title:'Watch for fungal disease',    detail:'Check leaves closely — high humidity triggers fungal and bacterial infections.' });
+  }
+  if (w.humidity < 40) {
+    advice.push({ type:'do',   emoji:'💦', title:'Increase irrigation',         detail:'Low humidity means fast moisture loss from soil. Irrigate more frequently.' });
+  }
+  if (w.wind > 30) {
+    advice.push({ type:'avoid',emoji:'🌬️', title:'Avoid spraying chemicals',   detail:'Strong winds cause chemical drift. Wait for calm weather before spraying.' });
+    advice.push({ type:'do',   emoji:'🪵', title:'Support tall crops',          detail:'Strong winds can lodge tall crops. Stake and tie plants now.' });
+  }
+  if (w.temp >= 15 && w.temp <= 30 && w.rain < 2 && w.humidity < 70) {
+    advice.push({ type:'do',   emoji:'✅', title:'Ideal farming conditions',    detail:'Weather is favorable for field operations, spraying, sowing, and harvesting.' });
+  }
+  return advice;
+}
+
+function renderSmartAdvice() {
+  const content = document.getElementById('adviceContent');
+  if (!weatherData) {
+    content.innerHTML = `<div class="empty-state"><div class="es-icon">🌤️</div><h3>Weather data needed</h3><p>Go to the Weather tab to load your local weather first.</p></div>`;
+    return;
+  }
+  const advice = generateAdvice(weatherData);
+  if (!advice.length) {
+    content.innerHTML = `<div class="empty-state"><div class="es-icon">🌾</div><h3>All good today!</h3><p>No special alerts for current conditions.</p></div>`;
+    return;
+  }
+  content.innerHTML = advice.map(a => `
+    <div class="${a.type === 'do' ? 'advice-card-do' : 'advice-card-avoid'}">
+      <div class="advice-emoji">${a.emoji}</div>
+      <div class="advice-text"><strong>${a.type === 'do' ? '✔ ' : '✘ '}${a.title}</strong><span>${a.detail}</span></div>
+    </div>`).join('');
+}
+
+// ===== QUICK CHIPS =====
+function renderQuickChips() {
+  const chips = tr('quickQuestions');
+  document.getElementById('quickChips').innerHTML = chips.map(q =>
+    `<div class="chip" onclick="askQuestion(this.textContent)">${q}</div>`).join('');
+}
+function askQuestion(q) {
+  document.getElementById('askInput').value = q;
+  sendQuestion();
+}
+
+// ===== ASK AI (Gemini) =====
+async function sendQuestion() {
+  const input = document.getElementById('askInput');
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+
+  const chatArea = document.getElementById('chatArea');
+  chatArea.innerHTML += `<div class="bubble bubble-user">${q}</div>`;
+  chatArea.innerHTML += `<div class="bubble bubble-ai" id="aiTyping">🌾 Thinking...</div>`;
+  chatArea.scrollTop = chatArea.scrollHeight;
+
+  const langNote = currentLang === 'hi' ? 'Answer in Hindi.' : currentLang === 'mr' ? 'Answer in Marathi.' : 'Answer in English.';
+  const weatherCtx = weatherData ? `Current weather: ${weatherData.temp}°C, humidity ${weatherData.humidity}%, rain ${weatherData.rain}mm, wind ${weatherData.wind}km/h.` : '';
+  const fullPrompt = `You are KrishiMitra, a friendly and expert farming assistant for Indian farmers. ${langNote} ${weatherCtx} Give a concise, practical answer in simple language. Question: ${q}`;
+
+  try {
+    // By NOT putting "true" here, it defaults to normal conversational text!
+    const answer = await callGemini([{ text: fullPrompt }]); 
+    const safe = answer.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const shortForTts = answer.replace(/['"<>`]/g,'').substring(0, 200);
+    document.getElementById('aiTyping').outerHTML = `<div class="bubble bubble-ai">${safe}<br><button class="tts-btn" onclick="speak('${shortForTts}')">🔊 ${tr('listenLabel')}</button></div>`;
+  } catch(err) {
+    document.getElementById('aiTyping').outerHTML = `<div class="bubble bubble-ai">❌ Error: ${err.message || 'Could not connect. Check your internet.'}</div>`;
+  }
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+// ===== TEXT TO SPEECH =====
+function speak(text) {
+  speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = currentLang === 'hi' ? 'hi-IN' : currentLang === 'mr' ? 'mr-IN' : 'en-US';
+  utter.rate = 0.9;
+  speechSynthesis.speak(utter);
+}
+
+// ===== VOICE INPUT =====
+function toggleVoice() {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    showToast('⚠️ Voice not supported on this browser'); return;
+  }
+  if (isListening) {
+    recognition && recognition.stop(); return;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = currentLang === 'hi' ? 'hi-IN' : currentLang === 'mr' ? 'mr-IN' : 'en-US';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.onstart = () => {
+    isListening = true;
+    document.getElementById('voiceBtn').classList.add('listening');
+    document.getElementById('voiceBtnLabel').textContent = '🔴 Listening...';
+  };
+  recognition.onresult = (e) => {
+    const transcript = e.results[0][0].transcript;
+    document.getElementById('askInput').value = transcript;
+    switchPage('advice');
+    setTimeout(sendQuestion, 300);
+  };
+  recognition.onend = () => {
+    isListening = false;
+    document.getElementById('voiceBtn').classList.remove('listening');
+    document.getElementById('voiceBtnLabel').textContent = tr('voiceBtnLabel');
+  };
+  recognition.onerror = () => {
+    isListening = false;
+    document.getElementById('voiceBtn').classList.remove('listening');
+    document.getElementById('voiceBtnLabel').textContent = tr('voiceBtnLabel');
+  };
+  recognition.start();
+}
+
+// ===== HISTORY =====
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (!scanHistory.length) {
+    list.innerHTML = `<div class="empty-state"><div class="es-icon">📷</div><h3>${tr('noHistory')}</h3><p>${tr('noHistorySub')}</p></div>`;
+    return;
+  }
+  list.innerHTML = scanHistory.map(h => `
+    <div class="history-item">
+      ${h.thumb ? `<img src="${h.thumb}" class="history-thumb" alt="">` : `<div class="history-thumb">🌿</div>`}
+      <div class="history-info">
+        <h4>${h.plant || 'Unknown Plant'}</h4>
+        <p>${h.disease || 'Scanned'}</p>
+        <span class="hist-badge">${h.isHealthy ? '✅ Healthy' : '🔴 Disease'} · ${h.date}</span>
+      </div>
+    </div>`).join('');
+}
+
+// ===== UTILS =====
+function showLoading(msg) {
+  document.getElementById('loadingText').textContent = msg;
+  document.getElementById('loadingOverlay').classList.add('show');
+}
+function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+// ===== INIT =====
+renderQuickChips();
+applyTranslations();
+showToast('✅ Powered by Google Gemini AI');
+// Auto-load weather
+setTimeout(loadWeather, 800);
+</script>
+</body>
+</html>
