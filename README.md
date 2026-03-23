@@ -1,2 +1,2 @@
 # KrishiMitra
-A Multilingual, Multimodal Smart Farming Assistant
+A Multilingual, Multimodal Smart Farming Assistant.
